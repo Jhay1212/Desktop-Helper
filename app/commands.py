@@ -1,13 +1,18 @@
-
-import ctypes
-import os 
-import sys
-from pydub import AudioSegment
-from pydub.playback import play
 import pygame as pg
-import pathlib 
-import ctypes
+from dotenv import dotenv_values
+
 from random import choice
+import ctypes
+import pathlib 
+import os 
+import google.generativeai as genai
+
+
+config = dotenv_values(".env")
+API_KEY=config['GEMINI_SECRETKEY']
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel(model_name="models/gemini-2.5-pro")
+models = genai.list_models()
 
 pg.init()
 pg.mixer.init()
@@ -21,13 +26,11 @@ root = os.path.abspath(os.sep)
 root = os.path.join(root, "Users", "rjhay")
 MUSIC_PATH = pathlib.Path(os.path.join(root, "Music"))
 WALLPAPER_PATH = pathlib.Path(os.path.join(root, "OneDrive", "Pictures", 'wallpapers'))
-print(WALLPAPER_PATH)
 
 
 def all_items(path, pattern):
     """Get all files or sub directory in a path then return the files only acceptable in pattern"""
     items = path.rglob("*")
-    print(items)
     valid_files = []
     for item in items:
         if item.is_file() and item.suffix in ALLOWERD_FILE_EXTENSIONS[pattern.lower()]:
@@ -37,7 +40,6 @@ def all_items(path, pattern):
 MUSICS = all_items(MUSIC_PATH, "music")
 WALLPAPERS = all_items(WALLPAPER_PATH, "wallpaper")
 
-print(WALLPAPERS)
 def change_wallpaper(wallpaper=None):
     wallpaper = wallpaper if wallpaper else choice(WALLPAPERS)
     SPI_SETDESKWALLPAPER = 20
@@ -51,7 +53,9 @@ def change_wallpaper(wallpaper=None):
     )
 
 def play_music():
-    # plays music from music folder 
+    """"" 
+    Plays music and let it play for the duration of the muisc used for 
+    """
     pg.mixer.music.load(choice(MUSICS))
     pg.mixer.music.play()   
 
@@ -61,7 +65,10 @@ def play_music():
 def set_an_alarm():
     pass
 
-def ask_question():
-    pass
+def ask_question(question):
+    chat = model.start_chat()
+    response = model.generate_content(question)
+    return response.text
 
-change_wallpaper()
+def open_app(app):
+    pass
